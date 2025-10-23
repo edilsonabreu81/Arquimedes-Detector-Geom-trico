@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detector Geométrico Profissional</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+      padding: 10px;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '🧙‍♂️';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 400px;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      text-align: center;
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #667eea;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      background: white;
+      border: none;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #667eea;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      border-bottom: none;
+      position: relative;
+      bottom: -3px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .tab:hover { background: #f3f4f6; }
+    
+    .tab.active {
+      background: #667eea;
+      color: white;
+      border: 2px solid #667eea;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .upload-btn {
+      background: #667eea;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      width: auto;
+    }
+
+    .upload-btn:hover { background: #5568d3; }
+
+    input[type="file"] { display: none; }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      border: 3px solid #667eea;
+      border-radius: 10px;
+      cursor: crosshair;
+      background: #f0f0f0;
+      max-width: 100%;
+      height: auto;
+      touch-action: none;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin: 5px;
+      white-space: nowrap;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-success { background: #22c55e; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-info { background: #8b5cf6; color: white; }
+
+    .info-box {
+      background: #e0e7ff;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .status {
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .status-info { background: #dbeafe; color: #1e40af; }
+    .status-success { background: #d1fae5; color: #065f46; }
+    .status-error { background: #fee2e2; color: #991b1b; }
+    .status-warning { background: #fef3c7; color: #92400e; }
+
+    .mode-btn {
+      width: 100%;
+      padding: 12px;
+      border: 3px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .mode-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .results {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    input[type="number"], select {
+      padding: 10px;
+      font-size: 14px;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      margin: 5px;
+      max-width: 100%;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 15px 0;
+    }
+
+    .validation-box {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .validation-item {
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .validation-item.valid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .validation-item.invalid {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* RESPONSIVIDADE PARA MOBILE */
+    @media (max-width: 768px) {
+      body {
+        padding: 5px;
+      }
+
+      .container {
+        padding: 10px;
+        border-radius: 15px;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+      }
+
+      .tabs {
+        gap: 3px;
+        margin-bottom: 15px;
+      }
+
+      .tab {
+        padding: 10px 12px;
+        font-size: 12px;
+        min-width: 100px;
+      }
+
+      canvas {
+        margin: 10px auto;
+        border: 2px solid #667eea;
+      }
+
+      .upload-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .mode-btn {
+        padding: 10px;
+        font-size: 13px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        margin: 3px;
+        flex: 1;
+        min-width: 100px;
+      }
+
+      .controls {
+        gap: 5px;
+      }
+
+      .info-box {
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      .status {
+        padding: 10px;
+        font-size: 13px;
+      }
+
+      input[type="number"], select {
+        padding: 8px;
+        font-size: 13px;
+        width: 100%;
+      }
+
+      .validation-box {
+        padding: 12px;
+      }
+
+      .validation-item {
+        padding: 6px;
+        font-size: 12px;
+      }
+
+      .results {
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      #resultCanvas, #customPreviewCanvas {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.1rem;
+      }
+
+      .tab {
+        padding: 8px 10px;
+        font-size: 11px;
+        min-width: 80px;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 80px;
+      }
+
+      .upload-btn {
+        font-size: 13px;
+        padding: 10px 15px;
+      }
+    }
+
+    /* Melhorias para touch */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .mode-btn, .tab, .upload-btn {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .btn:active {
+        transform: scale(0.95);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Detector Geométrico Arquimedes </h1>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(0)">📏 Medir Figura</button>
+      <button class="tab" onclick="switchTab(1)">🎯 Polígono Personalizado</button>
+    </div>
+
+    <!-- ABA 1: Medir -->
+    <div id="tab0" class="tab-content active">
+      <div style="text-align: center;">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+          📷 Carregar Imagem
+        </button>
+        <input type="file" id="fileInput" accept="image/*">
+        
+        <div style="margin-top: 15px;">
+          <label><strong>Escala:</strong></label>
+          <input type="number" id="scaleValue" value="10" step="0.1" min="0.1" style="width: 100px;">
+          <span><strong>cm</strong></span>
+        </div>
+      </div>
+
+      <div id="status" class="status status-info">ℹ️ Carregue uma imagem</div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <button class="mode-btn active" id="modeScale" onclick="setMode('scale')" style="display: inline-block; width: auto; padding: 15px 30px; margin: 5px;">
+          1️⃣ Marcar Escala
+        </button>
+        <button class="mode-btn" id="modeShape" onclick="setMode('shape')" style="display: inline-block; width: auto; padding: 15px 30px; margin: 5px;">
+          2️⃣ Marcar Forma
+        </button>
+        <button class="btn btn-info" onclick="autoDetect()" style="display: inline-block; padding: 15px 30px; margin: 5px;">
+          🤖 Detecção Automática
+        </button>
+      </div>
+
+      <canvas id="canvas" width="800" height="600"></canvas>
+
+      <div class="controls">
+        <button class="btn btn-warning" onclick="undoPoint()">↶ Desfazer</button>
+        <button class="btn btn-success" id="btnAnalyze" onclick="analyze()" disabled>📊 Calcular</button>
+        <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar</button>
+        <button class="btn btn-primary" onclick="generateResultImage()" id="btnGenerateImage" style="display: none;">🖼️ Gerar Figura com Resultados</button>
+      </div>
+
+      <div class="info-box">
+        <strong>Pontos:</strong>
+        <div id="points">• Escala: 0/2<br>• Vértices: 0</div>
+      </div>
+
+      <div id="results" class="results"></div>
+      
+      <div id="resultImageContainer" style="display: none; margin-top: 20px; text-align: center;">
+        <h3 style="color: #667eea;">🖼️ Figura Analisada com Resultados</h3>
+        <canvas id="resultCanvas" style="border: 3px solid #667eea; border-radius: 10px; max-width: 100%; background: white;"></canvas>
+        <div style="margin-top: 10px;">
+          <button class="btn btn-success" onclick="downloadResultImage()">💾 Baixar Imagem</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 2: Personalizado -->
+    <div id="tab1" class="tab-content">
+      <h3>🎯 Polígono Personalizado</h3>
+      <p style="color: #666; margin: 10px 0;">Configure lados e/ou ângulos</p>
+      
+      <div style="margin: 20px 0;">
+        <label><strong>Número de Lados:</strong></label>
+        <input type="number" id="numSides" min="3" max="12" value="3" onchange="generateCustomInputs()">
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label><strong>Modo:</strong></label>
+        <select id="creationMode" onchange="toggleCreationMode()">
+          <option value="sides">Apenas Lados</option>
+          <option value="angles">Apenas Ângulos</option>
+          <option value="both">Lados e Ângulos</option>
+        </select>
+      </div>
+
+      <div id="sidesSection" style="margin: 20px 0;">
+        <h4>Lados (cm):</h4>
+        <div id="customSideInputs"></div>
+      </div>
+
+      <div id="anglesSection" style="margin: 20px 0; display: none;">
+        <h4>Ângulos (graus):</h4>
+        <div id="customAngleInputs"></div>
+        <div id="angleSumInfo" style="margin-top: 10px; padding: 10px; background: #f3f4f6; border-radius: 5px;"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-success" onclick="validateCustomPolygon()">✓ Validar</button>
+        <button class="btn btn-warning" onclick="clearCustom()">🔄 Limpar</button>
+      </div>
+
+      <div id="customValidationResults"></div>
+      <div id="customShapePreview" style="display: none; margin-top: 20px;">
+        <canvas id="customPreviewCanvas" width="600" height="400" style="border: 3px solid #22c55e;"></canvas>
+        <div id="customShapeInfo" style="margin-top: 15px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var img = null;
+    var scalePoints = [];
+    var vertices = [];
+    var mode = 'scale';
+
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var customPreviewCanvas = document.getElementById('customPreviewCanvas');
+    var customPreviewCtx = customPreviewCanvas.getContext('2d');
+
+    function switchTab(index) {
+      var tabs = document.querySelectorAll('.tab');
+      var contents = document.querySelectorAll('.tab-content');
+      
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+        contents[i].classList.remove('active');
+      }
+      
+      tabs[index].classList.add('active');
+      contents[index].classList.add('active');
+    }
+
+    function setStatus(msg, type) {
+      var status = document.getElementById('status');
+      status.className = 'status status-' + type;
+      var icons = {info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️'};
+      status.textContent = icons[type] + ' ' + msg;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      setStatus('Carregando...', 'info');
+      
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var tempImg = new Image();
+        tempImg.onload = function() {
+          img = tempImg;
+          scalePoints = [];
+          vertices = [];
+          drawCanvas();
+          updatePoints();
+          setStatus('Imagem carregada!', 'success');
+          setMode('scale');
+        };
+        tempImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      if (!img) {
+        ctx.fillStyle = '#999';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Aguardando imagem...', canvas.width/2, canvas.height/2);
+        return;
+      }
+
+      var scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+      var w = img.width * scale;
+      var h = img.height * scale;
+      var x = (canvas.width - w) / 2;
+      var y = (canvas.height - h) / 2;
+
+      ctx.drawImage(img, x, y, w, h);
+
+      for (var i = 0; i < scalePoints.length; i++) {
+        var p = scalePoints[i];
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (scalePoints.length === 2) {
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(scalePoints[0].x, scalePoints[0].y);
+        ctx.lineTo(scalePoints[1].x, scalePoints[1].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      for (var i = 0; i < vertices.length; i++) {
+        var v = vertices[i];
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (vertices.length > 0) {
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+        for (var i = 1; i < vertices.length; i++) {
+          ctx.lineTo(vertices[i].x, vertices[i].y);
+        }
+        if (vertices.length > 2) ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    canvas.addEventListener('click', function(e) {
+      handleCanvasInteraction(e);
+    });
+    
+    canvas.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      if (e.changedTouches.length > 0) {
+        handleCanvasInteraction(e.changedTouches[0]);
+      }
+    });
+    
+    function handleCanvasInteraction(e) {
+      if (!img) {
+        setStatus('Carregue uma imagem!', 'error');
+        return;
+      }
+
+      var rect = canvas.getBoundingClientRect();
+      var x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      var y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+      if (mode === 'scale') {
+        if (scalePoints.length < 2) {
+          scalePoints.push({x: x, y: y});
+          if (scalePoints.length === 2) {
+            setStatus('Escala completa!', 'success');
+            setTimeout(function() { setMode('shape'); }, 1000);
+          }
+        }
+      } else {
+        vertices.push({x: x, y: y});
+        if (vertices.length >= 3) {
+          document.getElementById('btnAnalyze').disabled = false;
+        }
+      }
+
+      updatePoints();
+      drawCanvas();
+    }
+
+    function setMode(newMode) {
+      if (newMode === 'shape' && scalePoints.length < 2) {
+        setStatus('Marque a escala primeiro!', 'error');
+        return;
+      }
+
+      mode = newMode;
+      document.getElementById('modeScale').classList.toggle('active', mode === 'scale');
+      document.getElementById('modeShape').classList.toggle('active', mode === 'shape');
+    }
+
+    function updatePoints() {
+      document.getElementById('points').innerHTML = 
+        '• Escala: ' + scalePoints.length + '/2<br>• Vértices: ' + vertices.length;
+    }
+
+    function undoPoint() {
+      if (mode === 'scale' && scalePoints.length > 0) {
+        scalePoints.pop();
+      } else if (vertices.length > 0) {
+        vertices.pop();
+        if (vertices.length < 3) document.getElementById('btnAnalyze').disabled = true;
+      }
+      updatePoints();
+      drawCanvas();
+    }
+
+    function clearAll() {
+      img = null;
+      scalePoints = [];
+      vertices = [];
+      document.getElementById('fileInput').value = '';
+      document.getElementById('btnAnalyze').disabled = true;
+      document.getElementById('results').style.display = 'none';
+      drawCanvas();
+      updatePoints();
+      setStatus('Limpo', 'info');
+    }
+
+    function analyze() {
+      if (scalePoints.length < 2 || vertices.length < 3) return;
+
+      var scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+      var w = img.width * scale;
+      var h = img.height * scale;
+      var offsetX = (canvas.width - w) / 2;
+      var offsetY = (canvas.height - h) / 2;
+
+      var s1x = (scalePoints[0].x - offsetX) / scale;
+      var s1y = (scalePoints[0].y - offsetY) / scale;
+      var s2x = (scalePoints[1].x - offsetX) / scale;
+      var s2y = (scalePoints[1].y - offsetY) / scale;
+      
+      var scaleDist = Math.hypot(s2x - s1x, s2y - s1y);
+      var scaleVal = parseFloat(document.getElementById('scaleValue').value);
+      var factor = scaleDist / scaleVal;
+
+      var n = vertices.length;
+      var sides = [];
+      
+      for (var i = 0; i < n; i++) {
+        var v1x = (vertices[i].x - offsetX) / scale;
+        var v1y = (vertices[i].y - offsetY) / scale;
+        var v2x = (vertices[(i + 1) % n].x - offsetX) / scale;
+        var v2y = (vertices[(i + 1) % n].y - offsetY) / scale;
+        var dist = Math.hypot(v2x - v1x, v2y - v1y) / factor;
+        sides.push(dist);
+      }
+
+      // Calcular ângulos internos
+      var angles = [];
+      for (var i = 0; i < n; i++) {
+        var v1 = vertices[(i - 1 + n) % n];
+        var v2 = vertices[i];
+        var v3 = vertices[(i + 1) % n];
+        
+        var dx1 = v1.x - v2.x;
+        var dy1 = v1.y - v2.y;
+        var dx2 = v3.x - v2.x;
+        var dy2 = v3.y - v2.y;
+        
+        var dot = dx1 * dx2 + dy1 * dy2;
+        var mag1 = Math.hypot(dx1, dy1);
+        var mag2 = Math.hypot(dx2, dy2);
+        var cosAngle = dot / (mag1 * mag2);
+        cosAngle = Math.max(-1, Math.min(1, cosAngle));
+        var angle = Math.acos(cosAngle) * 180 / Math.PI;
+        angles.push(angle);
+      }
+
+      var perimeter = 0;
+      for (var i = 0; i < sides.length; i++) {
+        perimeter += sides[i];
+      }
+
+      // Calcular área usando fórmula do polígono
+      var area = 0;
+      for (var i = 0; i < n; i++) {
+        var v1x = (vertices[i].x - offsetX) / scale / factor;
+        var v1y = (vertices[i].y - offsetY) / scale / factor;
+        var v2x = (vertices[(i + 1) % n].x - offsetX) / scale / factor;
+        var v2y = (vertices[(i + 1) % n].y - offsetY) / scale / factor;
+        area += v1x * v2y - v2x * v1y;
+      }
+      area = Math.abs(area) / 2;
+
+      var shapes = {3: 'Triângulo', 4: 'Quadrilátero', 5: 'Pentágono', 6: 'Hexágono'};
+      var name = shapes[n] || 'Polígono';
+
+      var html = '<h3>✅ Resultados</h3>';
+      html += '<p><strong>Forma:</strong> ' + name + '</p>';
+      
+      html += '<div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin: 10px 0;">';
+      html += '<strong style="color: #0369a1;">📏 Lados:</strong><br>';
+      for (var i = 0; i < sides.length; i++) {
+        html += '<span style="margin-right: 15px;">L' + (i+1) + ' = ' + sides[i].toFixed(2) + ' cm</span>';
+      }
+      html += '</div>';
+      
+      html += '<div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin: 10px 0;">';
+      html += '<strong style="color: #92400e;">📐 Ângulos:</strong><br>';
+      var angleSum = 0;
+      for (var i = 0; i < angles.length; i++) {
+        html += '<span style="margin-right: 15px;">∠' + (i+1) + ' = ' + angles[i].toFixed(1) + '°</span>';
+        angleSum += angles[i];
+      }
+      html += '<br><small style="color: #78350f; margin-top: 5px; display: inline-block;">Soma dos ângulos: ' + angleSum.toFixed(1) + '° (esperado: ' + ((n-2)*180) + '°)</small>';
+      html += '</div>';
+      
+      html += '<div style="background: #f0fdf4; padding: 12px; border-radius: 8px; margin: 10px 0;">';
+      html += '<p style="margin: 5px 0;"><strong style="color: #166534;">📊 Perímetro:</strong> ' + perimeter.toFixed(2) + ' cm</p>';
+      html += '<p style="margin: 5px 0;"><strong style="color: #166534;">📦 Área:</strong> ' + area.toFixed(2) + ' cm²</p>';
+      html += '</div>';
+
+      // Validação da Lei do Maior Lado (para triângulos)
+      if (n === 3) {
+        html += '<div style="margin-top: 15px; padding: 12px; background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 5px;">';
+        html += '<strong>🔍 Validação - Lei do Maior Lado:</strong><br>';
+        html += '<small style="color: #0369a1;">';
+        
+        var sortedSideIndices = [0, 1, 2].sort(function(a, b) { return sides[b] - sides[a]; });
+        var sortedAngleIndices = [0, 1, 2].sort(function(a, b) { return angles[b] - angles[a]; });
+        
+        for (var i = 0; i < 3; i++) {
+          var sideIdx = sortedSideIndices[i];
+          var rankLabel = i === 0 ? '(maior)' : i === 1 ? '(médio)' : '(menor)';
+          
+          var oppositeAngle = angles[sideIdx];
+          var angleRank = sortedAngleIndices.indexOf(sideIdx);
+          var angleRankLabel = angleRank === 0 ? '(maior)' : angleRank === 1 ? '(médio)' : '(menor)';
+          
+          var isCorrect = i === angleRank;
+          var icon = isCorrect ? '✅' : '⚠️';
+          
+          html += icon + ' L' + (sideIdx + 1) + ' ' + rankLabel + ' = ' + sides[sideIdx].toFixed(2) + 'cm ↔ ∠' + (sideIdx + 1) + ' ' + angleRankLabel + ' = ' + oppositeAngle.toFixed(1) + '°<br>';
+        }
+        
+        html += '</small></div>';
+      }
+
+      document.getElementById('results').innerHTML = html;
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('btnGenerateImage').style.display = 'inline-block';
+      setStatus('Análise concluída!', 'success');
+      
+      // Armazenar resultados para uso posterior
+      window.lastAnalysis = {
+        sides: sides,
+        angles: angles,
+        perimeter: perimeter,
+        area: area,
+        name: name,
+        n: n
+      };
+    }
+
+    function autoDetect() {
+      if (!img) {
+        setStatus('Carregue uma imagem primeiro!', 'error');
+        return;
+      }
+      
+      if (scalePoints.length < 2) {
+        setStatus('Marque a escala primeiro!', 'error');
+        return;
+      }
+      
+      setStatus('🔍 Detectando forma automaticamente...', 'info');
+      
+      // Criar canvas temporário para processamento
+      var tempCanvas = document.createElement('canvas');
+      var scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+      tempCanvas.width = img.width * scale;
+      tempCanvas.height = img.height * scale;
+      var tempCtx = tempCanvas.getContext('2d');
+      
+      tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+      var imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Converter para escala de cinza e detectar bordas (algoritmo simplificado)
+      var detected = detectShapeEdges(imageData);
+      
+      if (detected && detected.length >= 3) {
+        vertices = detected.map(function(p) {
+          return {
+            x: p.x + (canvas.width - tempCanvas.width) / 2,
+            y: p.y + (canvas.height - tempCanvas.height) / 2
+          };
+        });
+        
+        drawCanvas();
+        updatePoints();
+        document.getElementById('btnAnalyze').disabled = false;
+        setStatus('✅ Forma detectada com ' + vertices.length + ' vértices!', 'success');
+        mode = 'shape';
+        document.getElementById('modeScale').classList.remove('active');
+        document.getElementById('modeShape').classList.add('active');
+        
+        // Calcular automaticamente os resultados
+        setTimeout(function() {
+          analyze();
+        }, 500);
+      } else {
+        setStatus('❌ Não foi possível detectar uma forma clara. Use o modo manual.', 'error');
+      }
+    }
+    
+    function detectShapeEdges(imageData) {
+      var data = imageData.data;
+      var width = imageData.width;
+      var height = imageData.height;
+      
+      // 1. DETECÇÃO DE BORDAS - Encontrar todos os pixels de borda
+      var threshold = 120;
+      var edgePoints = [];
+      
+      for (var y = 2; y < height - 2; y += 2) {
+        for (var x = 2; x < width - 2; x += 2) {
+          var idx = (y * width + x) * 4;
+          var brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+          
+          // Verificar se é uma borda (contraste com vizinhos)
+          if (brightness < threshold) {
+            var hasContrast = false;
+            
+            // Verificar pixels vizinhos
+            for (var dy = -1; dy <= 1; dy++) {
+              for (var dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                var nidx = ((y + dy) * width + (x + dx)) * 4;
+                var nbrightness = (data[nidx] + data[nidx + 1] + data[nidx + 2]) / 3;
+                if (Math.abs(brightness - nbrightness) > 50) {
+                  hasContrast = true;
+                  break;
+                }
+              }
+              if (hasContrast) break;
+            }
+            
+            if (hasContrast) {
+              edgePoints.push({x: x, y: y});
+            }
+          }
+        }
+      }
+      
+      if (edgePoints.length < 20) return null;
+      
+      // 2. ENCONTRAR CENTRO GEOMÉTRICO
+      var sumX = 0, sumY = 0;
+      for (var i = 0; i < edgePoints.length; i++) {
+        sumX += edgePoints[i].x;
+        sumY += edgePoints[i].y;
+      }
+      var centerX = sumX / edgePoints.length;
+      var centerY = sumY / edgePoints.length;
+      
+      // 3. CONVERTER PARA COORDENADAS POLARES E AGRUPAR POR ÂNGULO
+      var numSectors = 72; // 72 setores de 5° cada
+      var sectorSize = (2 * Math.PI) / numSectors;
+      var sectors = [];
+      
+      for (var i = 0; i < numSectors; i++) {
+        sectors[i] = [];
+      }
+      
+      for (var i = 0; i < edgePoints.length; i++) {
+        var p = edgePoints[i];
+        var dx = p.x - centerX;
+        var dy = p.y - centerY;
+        var angle = Math.atan2(dy, dx);
+        var distance = Math.hypot(dx, dy);
+        
+        // Normalizar ângulo para [0, 2π]
+        if (angle < 0) angle += 2 * Math.PI;
+        
+        var sectorIdx = Math.floor(angle / sectorSize);
+        if (sectorIdx >= numSectors) sectorIdx = numSectors - 1;
+        
+        sectors[sectorIdx].push({
+          x: p.x,
+          y: p.y,
+          angle: angle,
+          distance: distance
+        });
+      }
+      
+      // 4. ENCONTRAR O PONTO MAIS DISTANTE EM CADA SETOR
+      var radiusProfile = [];
+      for (var i = 0; i < numSectors; i++) {
+        if (sectors[i].length > 0) {
+          var maxPoint = sectors[i][0];
+          for (var j = 1; j < sectors[i].length; j++) {
+            if (sectors[i][j].distance > maxPoint.distance) {
+              maxPoint = sectors[i][j];
+            }
+          }
+          radiusProfile.push({
+            sector: i,
+            angle: i * sectorSize + sectorSize / 2,
+            point: maxPoint,
+            distance: maxPoint.distance
+          });
+        }
+      }
+      
+      if (radiusProfile.length < 8) return null;
+      
+      // 5. DETECTAR PICOS (VÉRTICES) NO PERFIL DE RAIO
+      var peaks = [];
+      var windowSize = 5; // Janela para comparação local
+      
+      for (var i = 0; i < radiusProfile.length; i++) {
+        var current = radiusProfile[i];
+        var isPeak = true;
+        var localMax = current.distance;
+        
+        // Verificar se é um máximo local
+        for (var j = -windowSize; j <= windowSize; j++) {
+          if (j === 0) continue;
+          var idx = (i + j + radiusProfile.length) % radiusProfile.length;
+          if (radiusProfile[idx].distance > localMax) {
+            isPeak = false;
+            break;
+          }
+        }
+        
+        // Verificar se o pico é significativo (pelo menos 10% maior que a média local)
+        if (isPeak) {
+          var localSum = 0;
+          var count = 0;
+          for (var j = -windowSize; j <= windowSize; j++) {
+            var idx = (i + j + radiusProfile.length) % radiusProfile.length;
+            localSum += radiusProfile[idx].distance;
+            count++;
+          }
+          var localAvg = localSum / count;
+          
+          if (current.distance > localAvg * 1.05) { // 5% acima da média local
+            peaks.push(current);
+          }
+        }
+      }
+      
+      if (peaks.length < 3) return null;
+      
+      // 6. FILTRAR PICOS MUITO PRÓXIMOS
+      var filtered = [];
+      var minAngleDiff = (2 * Math.PI) / 20; // Mínimo ~18°
+      
+      for (var i = 0; i < peaks.length; i++) {
+        var tooClose = false;
+        for (var j = 0; j < filtered.length; j++) {
+          var angleDiff = Math.abs(peaks[i].angle - filtered[j].angle);
+          if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+          
+          if (angleDiff < minAngleDiff) {
+            tooClose = true;
+            // Manter o pico mais distante
+            if (peaks[i].distance > filtered[j].distance) {
+              filtered[j] = peaks[i];
+            }
+            break;
+          }
+        }
+        if (!tooClose) {
+          filtered.push(peaks[i]);
+        }
+      }
+      
+      // 7. SE AINDA TEMOS MUITOS PICOS, SELECIONAR OS MAIS PRONUNCIADOS
+      if (filtered.length > 12) {
+        filtered.sort(function(a, b) {
+          return b.distance - a.distance;
+        });
+        filtered = filtered.slice(0, 12);
+      }
+      
+      // 8. ORDENAR POR ÂNGULO
+      filtered.sort(function(a, b) {
+        return a.angle - b.angle;
+      });
+      
+      // 9. EXTRAIR APENAS OS PONTOS
+      var corners = filtered.map(function(p) {
+        return p.point;
+      });
+      
+      return corners.length >= 3 && corners.length <= 12 ? corners : null;
+    }
+    
+    function simplifyByAngle(points, centerX, centerY) {
+      // Calcular distribuição angular esperada
+      var expectedAngle = (2 * Math.PI) / points.length;
+      var result = [];
+      var lastAngle = -10; // Começar com um ângulo impossível
+      
+      for (var i = 0; i < points.length; i++) {
+        var p = points[i];
+        var angle = Math.atan2(p.y - centerY, p.x - centerX);
+        
+        // Normalizar para [0, 2π]
+        if (angle < 0) angle += 2 * Math.PI;
+        
+        // Se o ângulo é suficientemente diferente do último, incluir
+        var angleDiff = Math.abs(angle - lastAngle);
+        if (angleDiff > expectedAngle * 0.6 || result.length === 0) {
+          result.push(p);
+          lastAngle = angle;
+        }
+      }
+      
+      return result.length >= 3 ? result : points;
+    }
+    
+    function simplifyCorners(corners, centerX, centerY) {
+      // Calcular a variação angular entre pontos consecutivos
+      var variations = [];
+      
+      for (var i = 0; i < corners.length; i++) {
+        var prev = corners[(i - 1 + corners.length) % corners.length];
+        var curr = corners[i];
+        var next = corners[(i + 1) % corners.length];
+        
+        var angle1 = Math.atan2(curr.y - prev.y, curr.x - prev.x);
+        var angle2 = Math.atan2(next.y - curr.y, next.x - curr.x);
+        var diff = Math.abs(angle2 - angle1);
+        
+        // Normalizar diferença angular
+        if (diff > Math.PI) diff = 2 * Math.PI - diff;
+        
+        variations.push({
+          index: i,
+          point: curr,
+          variation: diff
+        });
+      }
+      
+      // Ordenar por variação (maior variação = canto mais pronunciado)
+      variations.sort(function(a, b) {
+        return b.variation - a.variation;
+      });
+      
+      // Pegar os N pontos com maior variação (máximo 8 para evitar ruído)
+      var numCorners = Math.min(8, Math.max(3, Math.round(corners.length / 5)));
+      var selected = variations.slice(0, numCorners).map(function(v) {
+        return v.point;
+      });
+      
+      return selected;
+    }
+    
+    function findRealCorners(points, centerX, centerY) {
+      if (points.length <= 5) return points; // Poucos pontos, manter todos
+      
+      var corners = [];
+      var angleThreshold = 0.5; // ~29 graus (mais rigoroso)
+      
+      for (var i = 0; i < points.length; i++) {
+        var prev = points[(i - 1 + points.length) % points.length];
+        var curr = points[i];
+        var next = points[(i + 1) % points.length];
+        
+        // Calcular vetores
+        var v1x = curr.x - prev.x;
+        var v1y = curr.y - prev.y;
+        var v2x = next.x - curr.x;
+        var v2y = next.y - curr.y;
+        
+        // Calcular ângulo entre vetores
+        var dot = v1x * v2x + v1y * v2y;
+        var mag1 = Math.hypot(v1x, v1y);
+        var mag2 = Math.hypot(v2x, v2y);
+        
+        if (mag1 > 0 && mag2 > 0) {
+          var cosAngle = dot / (mag1 * mag2);
+          cosAngle = Math.max(-1, Math.min(1, cosAngle));
+          var angle = Math.acos(cosAngle);
+          
+          // Se há mudança significativa de direção, é um vértice
+          if (angle > angleThreshold) {
+            corners.push({
+              point: curr,
+              angle: angle
+            });
+          }
+        }
+      }
+      
+      // Se ainda temos muitos cantos, pegar apenas os mais pronunciados
+      if (corners.length > 8) {
+        corners.sort(function(a, b) {
+          return b.angle - a.angle; // Maior ângulo primeiro
+        });
+        corners = corners.slice(0, 8);
+      }
+      
+      // Extrair apenas os pontos
+      var result = corners.map(function(c) { return c.point; });
+      
+      // Reordenar no sentido horário
+      result.sort(function(a, b) {
+        var angleA = Math.atan2(a.y - centerY, a.x - centerX);
+        var angleB = Math.atan2(b.y - centerY, b.x - centerX);
+        return angleA - angleB;
+      });
+      
+      return result.length >= 3 ? result : points;
+    }
+
+    function generateResultImage() {
+      if (!window.lastAnalysis) {
+        alert('Execute uma análise primeiro!');
+        return;
+      }
+      
+      var resultCanvas = document.getElementById('resultCanvas');
+      var rCtx = resultCanvas.getContext('2d');
+      
+      // Configurar tamanho
+      resultCanvas.width = 1000;
+      resultCanvas.height = 800;
+      
+      // Fundo branco
+      rCtx.fillStyle = '#ffffff';
+      rCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+      
+      // Desenhar imagem original
+      var scale = Math.min(resultCanvas.width / img.width, resultCanvas.height / img.height) * 0.6;
+      var w = img.width * scale;
+      var h = img.height * scale;
+      var imgX = 50;
+      var imgY = 100;
+      
+      rCtx.drawImage(img, imgX, imgY, w, h);
+      
+      // Calcular offset para transformar coordenadas
+      var canvasScale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.9;
+      var canvasW = img.width * canvasScale;
+      var canvasH = img.height * canvasScale;
+      var canvasOffsetX = (canvas.width - canvasW) / 2;
+      var canvasOffsetY = (canvas.height - canvasH) / 2;
+      
+      // Desenhar polígono
+      rCtx.strokeStyle = '#22c55e';
+      rCtx.lineWidth = 4;
+      rCtx.beginPath();
+      
+      for (var i = 0; i < vertices.length; i++) {
+        var vx = ((vertices[i].x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var vy = ((vertices[i].y - canvasOffsetY) / canvasScale) * scale + imgY;
+        
+        if (i === 0) {
+          rCtx.moveTo(vx, vy);
+        } else {
+          rCtx.lineTo(vx, vy);
+        }
+      }
+      rCtx.closePath();
+      rCtx.stroke();
+      
+      // Desenhar vértices numerados
+      for (var i = 0; i < vertices.length; i++) {
+        var vx = ((vertices[i].x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var vy = ((vertices[i].y - canvasOffsetY) / canvasScale) * scale + imgY;
+        
+        rCtx.fillStyle = '#22c55e';
+        rCtx.strokeStyle = 'white';
+        rCtx.lineWidth = 3;
+        rCtx.beginPath();
+        rCtx.arc(vx, vy, 15, 0, Math.PI * 2);
+        rCtx.fill();
+        rCtx.stroke();
+        
+        rCtx.fillStyle = 'white';
+        rCtx.font = 'bold 16px Arial';
+        rCtx.textAlign = 'center';
+        rCtx.textBaseline = 'middle';
+        rCtx.fillText((i + 1).toString(), vx, vy);
+      }
+      
+      // Desenhar labels de lados e ângulos
+      var analysis = window.lastAnalysis;
+      rCtx.font = 'bold 14px Arial';
+      
+      for (var i = 0; i < vertices.length; i++) {
+        var v1 = vertices[i];
+        var v2 = vertices[(i + 1) % vertices.length];
+        
+        var v1x = ((v1.x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var v1y = ((v1.y - canvasOffsetY) / canvasScale) * scale + imgY;
+        var v2x = ((v2.x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var v2y = ((v2.y - canvasOffsetY) / canvasScale) * scale + imgY;
+        
+        var mx = (v1x + v2x) / 2;
+        var my = (v1y + v2y) / 2;
+        
+        var dx = v2x - v1x;
+        var dy = v2y - v1y;
+        var perpX = -dy;
+        var perpY = dx;
+        var perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
+        perpX /= perpLen;
+        perpY /= perpLen;
+        
+        mx += perpX * 25;
+        my += perpY * 25;
+        
+        rCtx.fillStyle = '#1e40af';
+        rCtx.fillText('L' + (i + 1) + '=' + analysis.sides[i].toFixed(1) + 'cm', mx, my);
+      }
+      
+      // Desenhar ângulos
+      rCtx.fillStyle = '#dc2626';
+      for (var i = 0; i < vertices.length; i++) {
+        var v = vertices[i];
+        var vx = ((v.x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var vy = ((v.y - canvasOffsetY) / canvasScale) * scale + imgY;
+        
+        var prev = vertices[(i - 1 + vertices.length) % vertices.length];
+        var next = vertices[(i + 1) % vertices.length];
+        
+        var prevX = ((prev.x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var prevY = ((prev.y - canvasOffsetY) / canvasScale) * scale + imgY;
+        var nextX = ((next.x - canvasOffsetX) / canvasScale) * scale + imgX;
+        var nextY = ((next.y - canvasOffsetY) / canvasScale) * scale + imgY;
+        
+        var centerX = (prevX + vx + nextX) / 3;
+        var centerY = (prevY + vy + nextY) / 3;
+        
+        var dirX = (centerX - vx) * 0.3;
+        var dirY = (centerY - vy) * 0.3;
+        
+        rCtx.fillText('∠' + (i + 1) + '=' + analysis.angles[i].toFixed(1) + '°', vx + dirX, vy + dirY);
+      }
+      
+      // Painel de resultados à direita
+      var panelX = imgX + w + 30;
+      var panelY = 100;
+      
+      rCtx.fillStyle = '#f3f4f6';
+      rCtx.fillRect(panelX, panelY, 300, 600);
+      
+      rCtx.fillStyle = '#667eea';
+      rCtx.font = 'bold 24px Arial';
+      rCtx.textAlign = 'left';
+      rCtx.fillText('📊 Resultados', panelX + 20, panelY + 40);
+      
+      var lineY = panelY + 80;
+      var lineHeight = 35;
+      
+      rCtx.font = 'bold 18px Arial';
+      rCtx.fillStyle = '#333';
+      rCtx.fillText('Forma: ' + analysis.name, panelX + 20, lineY);
+      lineY += lineHeight + 10;
+      
+      rCtx.font = '16px Arial';
+      rCtx.fillStyle = '#1e40af';
+      rCtx.fillText('📏 Lados:', panelX + 20, lineY);
+      lineY += lineHeight;
+      
+      rCtx.font = '14px Arial';
+      rCtx.fillStyle = '#333';
+      for (var i = 0; i < analysis.sides.length; i++) {
+        rCtx.fillText('  L' + (i + 1) + ' = ' + analysis.sides[i].toFixed(2) + ' cm', panelX + 20, lineY);
+        lineY += 25;
+      }
+      
+      lineY += 10;
+      rCtx.font = '16px Arial';
+      rCtx.fillStyle = '#dc2626';
+      rCtx.fillText('📐 Ângulos:', panelX + 20, lineY);
+      lineY += lineHeight;
+      
+      rCtx.font = '14px Arial';
+      rCtx.fillStyle = '#333';
+      for (var i = 0; i < analysis.angles.length; i++) {
+        rCtx.fillText('  ∠' + (i + 1) + ' = ' + analysis.angles[i].toFixed(1) + '°', panelX + 20, lineY);
+        lineY += 25;
+      }
+      
+      lineY += 20;
+      rCtx.font = 'bold 16px Arial';
+      rCtx.fillStyle = '#166534';
+      rCtx.fillText('Perímetro: ' + analysis.perimeter.toFixed(2) + ' cm', panelX + 20, lineY);
+      lineY += 30;
+      rCtx.fillText('Área: ' + analysis.area.toFixed(2) + ' cm²', panelX + 20, lineY);
+      
+      // Título no topo
+      rCtx.fillStyle = '#667eea';
+      rCtx.font = 'bold 32px Arial';
+      rCtx.textAlign = 'center';
+      rCtx.fillText('🔍 Análise Geométrica', resultCanvas.width / 2, 50);
+      
+      document.getElementById('resultImageContainer').style.display = 'block';
+      document.getElementById('resultImageContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function downloadResultImage() {
+      var resultCanvas = document.getElementById('resultCanvas');
+      var link = document.createElement('a');
+      link.download = 'analise_geometrica.png';
+      link.href = resultCanvas.toDataURL();
+      link.click();
+    }
+
+    function generateCustomInputs() {
+      var n = parseInt(document.getElementById('numSides').value);
+      
+      var html = '';
+      for (var i = 0; i < n; i++) {
+        html += '<label>Lado ' + (i+1) + ':</label>';
+        html += '<input type="number" id="customSide' + i + '" value="' + ((i+1)*2) + '" step="0.1" min="0.1">';
+      }
+      document.getElementById('customSideInputs').innerHTML = html;
+
+      html = '';
+      var avgAngle = Math.round((n - 2) * 180 / n);
+      for (var i = 0; i < n; i++) {
+        html += '<label>Ângulo ' + (i+1) + ':</label>';
+        html += '<input type="number" id="customAngle' + i + '" value="' + avgAngle + '" step="0.1" min="1" max="179" oninput="updateAngleSum()">';
+      }
+      document.getElementById('customAngleInputs').innerHTML = html;
+      
+      updateAngleSum();
+      document.getElementById('customShapePreview').style.display = 'none';
+      document.getElementById('customValidationResults').innerHTML = '';
+    }
+
+    function toggleCreationMode() {
+      var mode = document.getElementById('creationMode').value;
+      document.getElementById('sidesSection').style.display = (mode === 'sides' || mode === 'both') ? 'block' : 'none';
+      document.getElementById('anglesSection').style.display = (mode === 'angles' || mode === 'both') ? 'block' : 'none';
+      document.getElementById('customShapePreview').style.display = 'none';
+      document.getElementById('customValidationResults').innerHTML = '';
+    }
+
+    function updateAngleSum() {
+      var n = parseInt(document.getElementById('numSides').value);
+      var sum = 0;
+      for (var i = 0; i < n; i++) {
+        var val = parseFloat(document.getElementById('customAngle' + i).value) || 0;
+        sum += val;
+      }
+      var expected = (n - 2) * 180;
+      var valid = Math.abs(sum - expected) < 0.5;
+      var color = valid ? '#22c55e' : '#ef4444';
+      document.getElementById('angleSumInfo').innerHTML = 
+        '<strong>Soma:</strong> ' + sum.toFixed(1) + '° (esperado: ' + expected + '°) ' + 
+        '<span style="color: ' + color + '; font-weight: bold;">' + (valid ? '✓ Válido' : '✗ Inválido') + '</span>';
+    }
+
+    function validateCustomPolygon() {
+      var n = parseInt(document.getElementById('numSides').value);
+      var mode = document.getElementById('creationMode').value;
+      var sides = [];
+      var angles = [];
+      
+      // Marcar se lados foram fornecidos
+      window.sidesProvided = (mode === 'sides' || mode === 'both');
+
+      if (mode === 'sides' || mode === 'both') {
+        for (var i = 0; i < n; i++) {
+          var val = parseFloat(document.getElementById('customSide' + i).value);
+          if (isNaN(val) || val <= 0) {
+            alert('Insira valores válidos para os lados!');
+            return;
+          }
+          sides.push(val);
+        }
+      }
+
+      if (mode === 'angles' || mode === 'both') {
+        var sum = 0;
+        for (var i = 0; i < n; i++) {
+          var val = parseFloat(document.getElementById('customAngle' + i).value);
+          if (isNaN(val) || val <= 0 || val >= 180) {
+            alert('Insira ângulos válidos (0° a 180°)!');
+            return;
+          }
+          angles.push(val);
+          sum += val;
+        }
+        var expected = (n - 2) * 180;
+        if (Math.abs(sum - expected) > 0.5) {
+          alert('Soma dos ângulos deve ser ' + expected + '°! Atual: ' + sum.toFixed(1) + '°');
+          return;
+        }
+      }
+
+      // CORREÇÃO: Validar correspondência lado-ângulo para triângulos
+      if (mode === 'both' && n === 3) {
+        // 1. VERIFICAR SE ÂNGULOS IGUAIS → LADOS DEVEM SER IGUAIS
+        var allAnglesEqual = Math.abs(angles[0] - angles[1]) < 0.5 && 
+                             Math.abs(angles[1] - angles[2]) < 0.5;
+        var allSidesEqual = Math.abs(sides[0] - sides[1]) < 0.5 && 
+                            Math.abs(sides[1] - sides[2]) < 0.5;
+        
+        if (allAnglesEqual && !allSidesEqual) {
+          alert('ERRO: Ângulos iguais (' + angles[0].toFixed(1) + '°) indicam TRIÂNGULO EQUILÁTERO!\n\n' +
+                'Com 3 ângulos de 60°, TODOS OS LADOS DEVEM SER IGUAIS.\n\n' +
+                'Seus lados: L1=' + sides[0] + 'cm, L2=' + sides[1] + 'cm, L3=' + sides[2] + 'cm\n\n' +
+                'Corrija os valores!');
+          return;
+        }
+        
+        // 2. VERIFICAR SE 2 ÂNGULOS IGUAIS → 2 LADOS DEVEM SER IGUAIS (ISÓSCELES)
+        var angle1Eq2 = Math.abs(angles[0] - angles[1]) < 0.5;
+        var angle2Eq3 = Math.abs(angles[1] - angles[2]) < 0.5;
+        var angle1Eq3 = Math.abs(angles[0] - angles[2]) < 0.5;
+        
+        var side1Eq2 = Math.abs(sides[0] - sides[1]) < 0.5;
+        var side2Eq3 = Math.abs(sides[1] - sides[2]) < 0.5;
+        var side1Eq3 = Math.abs(sides[0] - sides[2]) < 0.5;
+        
+        var hasEqualAngles = angle1Eq2 || angle2Eq3 || angle1Eq3;
+        var hasEqualSides = side1Eq2 || side2Eq3 || side1Eq3;
+        
+        if (hasEqualAngles && !hasEqualSides) {
+          alert('ERRO: Dois ângulos iguais indicam TRIÂNGULO ISÓSCELES!\n\n' +
+                'Com 2 ângulos iguais, DOIS LADOS DEVEM SER IGUAIS.\n\n' +
+                'Corrija os valores!');
+          return;
+        }
+        
+        // 3. CALCULAR ÂNGULOS ESPERADOS USANDO LEI DOS COSSENOS
+        var a = sides[0];
+        var b = sides[1];
+        var c = sides[2];
+        
+        var cosA = (b*b + c*c - a*a) / (2*b*c);
+        var cosB = (a*a + c*c - b*b) / (2*a*c);
+        var cosC = (a*a + b*b - c*c) / (2*a*b);
+        
+        cosA = Math.max(-1, Math.min(1, cosA));
+        cosB = Math.max(-1, Math.min(1, cosB));
+        cosC = Math.max(-1, Math.min(1, cosC));
+        
+        var expectedA = Math.acos(cosA) * 180 / Math.PI;
+        var expectedB = Math.acos(cosB) * 180 / Math.PI;
+        var expectedC = Math.acos(cosC) * 180 / Math.PI;
+        
+        // 4. VERIFICAR COMPATIBILIDADE
+        var tolerance = 5; // 5 graus de tolerância
+        var compatibleA = Math.abs(expectedA - angles[0]) < tolerance;
+        var compatibleB = Math.abs(expectedB - angles[1]) < tolerance;
+        var compatibleC = Math.abs(expectedC - angles[2]) < tolerance;
+        
+        if (!compatibleA || !compatibleB || !compatibleC) {
+          var msg = 'ERRO: Lados e ângulos INCOMPATÍVEIS!\n\n';
+          msg += 'Para os lados fornecidos (L1=' + a + 'cm, L2=' + b + 'cm, L3=' + c + 'cm),\n';
+          msg += 'os ângulos deveriam ser:\n\n';
+          msg += '∠1 = ' + expectedA.toFixed(1) + '° (você colocou ' + angles[0].toFixed(1) + '°)\n';
+          msg += '∠2 = ' + expectedB.toFixed(1) + '° (você colocou ' + angles[1].toFixed(1) + '°)\n';
+          msg += '∠3 = ' + expectedC.toFixed(1) + '° (você colocou ' + angles[2].toFixed(1) + '°)\n\n';
+          msg += 'Corrija os valores para que sejam compatíveis!';
+          alert(msg);
+          return;
+        }
+        
+        // 5. VERIFICAR CORRESPONDÊNCIA (MAIOR LADO ↔ MAIOR ÂNGULO)
+        var sortedSides = sides.slice().map(function(v, i) { return {val: v, idx: i}; })
+          .sort(function(a, b) { return b.val - a.val; });
+        var sortedAngles = angles.slice().map(function(v, i) { return {val: v, idx: i}; })
+          .sort(function(a, b) { return b.val - a.val; });
+        
+        var needsReorder = false;
+        for (var i = 0; i < 3; i++) {
+          var sideIdx = sortedSides[i].idx;
+          var oppositeAngle = angles[sideIdx];
+          
+          if (Math.abs(sortedAngles[i].val - oppositeAngle) > tolerance) {
+            needsReorder = true;
+            break;
+          }
+        }
+        
+        if (needsReorder) {
+          alert('AVISO: Correspondência incorreta!\n\n' +
+                'REGRA: Maior lado deve estar OPOSTO ao maior ângulo.\n\n' +
+                'Os valores serão reorganizados automaticamente.');
+          
+          angles = [sortedAngles[0].val, sortedAngles[1].val, sortedAngles[2].val];
+          sides = [sortedSides[2].val, sortedSides[0].val, sortedSides[1].val];
+        }
+      }
+
+      var isValid = true;
+      var html = '';
+
+      if (mode === 'sides' || mode === 'both') {
+        html += '<div class="validation-box"><h4>Validação dos Lados:</h4>';
+        
+        if (n === 3) {
+          var checks = [
+            {valid: sides[0] + sides[1] > sides[2], text: 'L1 + L2 > L3', calc: sides[0] + ' + ' + sides[1] + ' = ' + (sides[0] + sides[1]).toFixed(1) + ' > ' + sides[2]},
+            {valid: sides[0] + sides[2] > sides[1], text: 'L1 + L3 > L2', calc: sides[0] + ' + ' + sides[2] + ' = ' + (sides[0] + sides[2]).toFixed(1) + ' > ' + sides[1]},
+            {valid: sides[1] + sides[2] > sides[0], text: 'L2 + L3 > L1', calc: sides[1] + ' + ' + sides[2] + ' = ' + (sides[1] + sides[2]).toFixed(1) + ' > ' + sides[0]}
+          ];
+          
+          for (var i = 0; i < checks.length; i++) {
+            var c = checks[i];
+            var cls = c.valid ? 'valid' : 'invalid';
+            var icon = c.valid ? '✓' : '✗';
+            html += '<div class="validation-item ' + cls + '">';
+            html += '<span style="font-size: 20px; font-weight: bold;">' + icon + '</span>';
+            html += '<div>';
+            html += '<div style="font-weight: bold;">' + c.text + '</div>';
+            html += '<div style="font-size: 13px; margin-top: 3px;">' + c.calc + '</div>';
+            html += '</div></div>';
+            if (!c.valid) isValid = false;
+          }
+        }
+        html += '</div>';
+      }
+
+      if (mode === 'angles' || mode === 'both') {
+        html += '<div class="validation-box"><h4>Validação dos Ângulos:</h4>';
+        var sumAng = 0;
+        for (var i = 0; i < angles.length; i++) {
+          sumAng += angles[i];
+        }
+        var expSum = (n - 2) * 180;
+        var sumValid = Math.abs(sumAng - expSum) < 0.5;
+        
+        html += '<div class="validation-item ' + (sumValid ? 'valid' : 'invalid') + '">';
+        html += '<span style="font-size: 20px; font-weight: bold;">' + (sumValid ? '✓' : '✗') + '</span>';
+        html += '<span>Soma: ' + sumAng.toFixed(1) + '° = ' + expSum + '°</span></div>';
+        html += '</div>';
+        
+        if (!sumValid) isValid = false;
+      }
+
+      if (isValid) {
+        html += '<div style="padding: 15px; background: #d1fae5; border-radius: 10px; margin-top: 15px; text-align: center;">';
+        html += '<strong style="color: #065f46;">✅ Polígono Válido!</strong></div>';
+        
+        if (mode === 'sides') {
+          drawCustomPreview(sides, null, n);
+        } else if (mode === 'angles') {
+          drawCustomPreview(null, angles, n);
+        } else {
+          drawCustomPreview(sides, angles, n);
+        }
+        
+        document.getElementById('customShapePreview').style.display = 'block';
+      } else {
+        html += '<div style="padding: 15px; background: #fee2e2; border-radius: 10px; margin-top: 15px; text-align: center;">';
+        html += '<strong style="color: #991b1b;">❌ Polígono Inválido!</strong><br>';
+        html += '<span style="font-size: 14px;">As condições de existência não foram satisfeitas.</span>';
+        html += '</div>';
+        document.getElementById('customShapePreview').style.display = 'none';
+      }
+
+      document.getElementById('customValidationResults').innerHTML = html;
+    }
+
+    function drawCustomPreview(sides, angles, n) {
+      customPreviewCtx.clearRect(0, 0, customPreviewCanvas.width, customPreviewCanvas.height);
+      customPreviewCtx.fillStyle = '#f9fafb';
+      customPreviewCtx.fillRect(0, 0, customPreviewCanvas.width, customPreviewCanvas.height);
+
+      var verticesArr;
+      if (sides && !angles) {
+        verticesArr = calculateVertices(sides, n);
+      } else if (angles && !sides) {
+        verticesArr = calculateVerticesFromAngles(angles, n);
+        sides = [];
+        for (var i = 0; i < n; i++) {
+          var v1 = verticesArr[i];
+          var v2 = verticesArr[(i + 1) % n];
+          var dist = Math.hypot(v2.x - v1.x, v2.y - v1.y);
+          sides.push(dist);
+        }
+        
+        // IMPORTANTE: Para triângulos apenas com ângulos, normalizar lados
+        // para que o menor lado seja 1.0 (proporção visual)
+        if (n === 3) {
+          var minSide = Math.min.apply(null, sides);
+          sides = sides.map(function(s) { return s / minSide; });
+        }
+      } else {
+        verticesArr = calculateVerticesFromBoth(sides, angles, n);
+      }
+
+      if (!verticesArr) return;
+
+      var bounds = getBounds(verticesArr);
+      var scale = Math.min(
+        (customPreviewCanvas.width - 100) / (bounds.maxX - bounds.minX),
+        (customPreviewCanvas.height - 100) / (bounds.maxY - bounds.minY)
+      );
+
+      var offsetX = customPreviewCanvas.width / 2 - (bounds.maxX + bounds.minX) * scale / 2;
+      var offsetY = customPreviewCanvas.height / 2 - (bounds.maxY + bounds.minY) * scale / 2;
+
+      customPreviewCtx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+      customPreviewCtx.strokeStyle = '#22c55e';
+      customPreviewCtx.lineWidth = 3;
+
+      customPreviewCtx.beginPath();
+      customPreviewCtx.moveTo(verticesArr[0].x * scale + offsetX, verticesArr[0].y * scale + offsetY);
+      for (var i = 1; i < verticesArr.length; i++) {
+        customPreviewCtx.lineTo(verticesArr[i].x * scale + offsetX, verticesArr[i].y * scale + offsetY);
+      }
+      customPreviewCtx.closePath();
+      customPreviewCtx.fill();
+      customPreviewCtx.stroke();
+
+      for (var i = 0; i < verticesArr.length; i++) {
+        var x = verticesArr[i].x * scale + offsetX;
+        var y = verticesArr[i].y * scale + offsetY;
+        
+        customPreviewCtx.fillStyle = '#22c55e';
+        customPreviewCtx.strokeStyle = 'white';
+        customPreviewCtx.lineWidth = 2;
+        customPreviewCtx.beginPath();
+        customPreviewCtx.arc(x, y, 10, 0, Math.PI * 2);
+        customPreviewCtx.fill();
+        customPreviewCtx.stroke();
+
+        customPreviewCtx.fillStyle = 'white';
+        customPreviewCtx.font = 'bold 12px Arial';
+        customPreviewCtx.textAlign = 'center';
+        customPreviewCtx.textBaseline = 'middle';
+        customPreviewCtx.fillText((i+1).toString(), x, y);
+      }
+
+      customPreviewCtx.fillStyle = '#111';
+      customPreviewCtx.font = 'bold 13px Arial';
+      customPreviewCtx.textAlign = 'center';
+
+      for (var i = 0; i < verticesArr.length; i++) {
+        var p1 = verticesArr[i];
+        var p2 = verticesArr[(i + 1) % verticesArr.length];
+        var mx = (p1.x + p2.x) / 2 * scale + offsetX;
+        var my = (p1.y + p2.y) / 2 * scale + offsetY;
+        var sideVal = sides && sides[i] ? sides[i] : 0;
+        
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        var perpX = -dy;
+        var perpY = dx;
+        var perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
+        perpX /= perpLen;
+        perpY /= perpLen;
+        
+        var offsetDist = 15;
+        mx += perpX * offsetDist;
+        my += perpY * offsetDist;
+        
+        customPreviewCtx.fillStyle = 'rgba(255,255,255,0.9)';
+        customPreviewCtx.fillRect(mx - 35, my - 10, 70, 20);
+        customPreviewCtx.fillStyle = '#1e40af';
+        customPreviewCtx.fillText('L' + (i+1) + '=' + sideVal.toFixed(1) + 'cm', mx, my + 4);
+      }
+
+      if (angles) {
+        customPreviewCtx.font = 'bold 12px Arial';
+        for (var i = 0; i < verticesArr.length; i++) {
+          var vx = verticesArr[i].x * scale + offsetX;
+          var vy = verticesArr[i].y * scale + offsetY;
+          var angVal = angles[i] ? angles[i] : calculateAnglesFromVertices(verticesArr, verticesArr.length)[i];
+          
+          var prevV = verticesArr[(i - 1 + verticesArr.length) % verticesArr.length];
+          var nextV = verticesArr[(i + 1) % verticesArr.length];
+          var centerX = (prevV.x + verticesArr[i].x + nextV.x) / 3;
+          var centerY = (prevV.y + verticesArr[i].y + nextV.y) / 3;
+          
+          var dirX = (centerX - verticesArr[i].x) * 0.4;
+          var dirY = (centerY - verticesArr[i].y) * 0.4;
+          
+          var labelX = vx + dirX * scale;
+          var labelY = vy + dirY * scale;
+          
+          customPreviewCtx.fillStyle = 'rgba(255,255,255,0.95)';
+          customPreviewCtx.fillRect(labelX - 30, labelY - 10, 60, 20);
+          customPreviewCtx.fillStyle = '#dc2626';
+          customPreviewCtx.fillText('∠' + (i+1) + '=' + angVal.toFixed(1) + '°', labelX, labelY + 4);
+        }
+      }
+
+      var perimeter = 0;
+      for (var i = 0; i < sides.length; i++) perimeter += sides[i];
+
+      var area = 0;
+      for (var i = 0; i < n; i++) {
+        var j = (i + 1) % n;
+        area += verticesArr[i].x * verticesArr[j].y - verticesArr[j].x * verticesArr[i].y;
+      }
+      area = Math.abs(area) / 2;
+
+      var shapes = {3: 'Triângulo', 4: 'Quadrilátero', 5: 'Pentágono', 6: 'Hexágono', 7: 'Heptágono', 8: 'Octógono'};
+      var name = shapes[n] || 'Polígono de ' + n + ' lados';
+
+      var info = '<div style="background: #f3f4f6; padding: 15px; border-radius: 10px;">';
+      info += '<h4>' + name + '</h4>';
+      
+      // Se apenas ângulos foram fornecidos, adicionar nota
+      if (angles && !window.sidesProvided) {
+        info += '<div style="background: #fef3c7; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px;">';
+        info += '<strong>ℹ️ Nota:</strong> Apenas ângulos fornecidos. Os lados foram calculados usando a <strong>Lei dos Senos</strong> ';
+        info += 'e normalizados proporcionalmente (menor lado = 1.0).';
+        info += '</div>';
+      }
+      
+      info += '<p><strong>Lados:</strong> ';
+      for (var i = 0; i < sides.length; i++) {
+        info += 'L' + (i+1) + '=' + sides[i].toFixed(2) + 'cm ';
+      }
+      info += '</p>';
+      if (angles) {
+        info += '<p><strong>Ângulos:</strong> ';
+        for (var i = 0; i < angles.length; i++) {
+          info += '∠' + (i+1) + '=' + angles[i].toFixed(1) + '° ';
+        }
+        info += '</p>';
+        
+        if (n === 3) {
+          info += '<div style="margin-top: 15px; padding: 12px; background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 5px;">';
+          info += '<strong>📐 Validação - Lei do Maior Lado:</strong><br>';
+          info += '<small style="color: #0369a1;">';
+          
+          var sortedSideIndices = [0, 1, 2].sort(function(a, b) { return sides[b] - sides[a]; });
+          var sortedAngleIndices = [0, 1, 2].sort(function(a, b) { return angles[b] - angles[a]; });
+          
+          for (var i = 0; i < 3; i++) {
+            var sideIdx = sortedSideIndices[i];
+            var rankLabel = i === 0 ? '(maior)' : i === 1 ? '(médio)' : '(menor)';
+            
+            var oppositeAngle = angles[sideIdx];
+            var angleRank = sortedAngleIndices.indexOf(sideIdx);
+            var angleRankLabel = angleRank === 0 ? '(maior)' : angleRank === 1 ? '(médio)' : '(menor)';
+            
+            var isCorrect = i === angleRank;
+            var icon = isCorrect ? '✅' : '⚠️';
+            
+            info += icon + ' Lado L' + (sideIdx + 1) + ' ' + rankLabel + ' = ' + sides[sideIdx].toFixed(1) + 'cm ↔ ∠' + (sideIdx + 1) + ' ' + angleRankLabel + ' = ' + oppositeAngle.toFixed(1) + '°<br>';
+          }
+          
+          info += '</small></div>';
+        }
+      }
+      info += '<p><strong>Perímetro:</strong> ' + perimeter.toFixed(2) + ' cm</p>';
+      info += '<p><strong>Área:</strong> ' + area.toFixed(2) + ' cm²</p>';
+      info += '</div>';
+
+      document.getElementById('customShapeInfo').innerHTML = info;
+    }
+
+    function clearCustom() {
+      document.getElementById('numSides').value = 3;
+      document.getElementById('creationMode').value = 'sides';
+      generateCustomInputs();
+      toggleCreationMode();
+    }
+
+    function calculateVertices(sides, n) {
+      if (n === 3) {
+        var a = sides[0];
+        var b = sides[1];
+        var c = sides[2];
+        var vertices = [
+          {x: 0, y: 0},
+          {x: c, y: 0}
+        ];
+        var cosB = (a*a + c*c - b*b) / (2*a*c);
+        cosB = Math.max(-1, Math.min(1, cosB));
+        var angleB = Math.acos(cosB);
+        vertices.push({
+          x: a * Math.cos(angleB),
+          y: a * Math.sin(angleB)
+        });
+        return vertices;
+      } else {
+        var vertices = [];
+        var angle = 0;
+        var x = 0;
+        var y = 0;
+        vertices.push({x: x, y: y});
+        var angleInc = (2 * Math.PI) / n;
+        for (var i = 0; i < n; i++) {
+          x += sides[i] * Math.cos(angle);
+          y += sides[i] * Math.sin(angle);
+          if (i < n - 1) vertices.push({x: x, y: y});
+          angle += angleInc;
+        }
+        return vertices;
+      }
+    }
+
+    function calculateVerticesFromAngles(angles, n) {
+      if (n === 3) {
+        // Para triângulos, usar Lei dos Senos para calcular lados corretos
+        var A = angles[0] * Math.PI / 180;
+        var B = angles[1] * Math.PI / 180;
+        var C = angles[2] * Math.PI / 180;
+        
+        // Lado arbitrário de referência
+        var a = 100; // Lado oposto ao ângulo A
+        
+        // Usar Lei dos Senos: a/sin(A) = b/sin(B) = c/sin(C)
+        var b = a * Math.sin(B) / Math.sin(A);
+        var c = a * Math.sin(C) / Math.sin(A);
+        
+        // Construir triângulo
+        var vertices = [];
+        vertices.push({x: 0, y: 0});           // Vértice 0
+        vertices.push({x: c, y: 0});            // Vértice 1 (base)
+        
+        // Vértice 2 usando ângulo A e lado b
+        var v2x = b * Math.cos(A);
+        var v2y = b * Math.sin(A);
+        vertices.push({x: v2x, y: v2y});
+        
+        return vertices;
+      } else if (n === 4) {
+        // Para quadriláteros, construir sequencialmente
+        var vertices = [];
+        var currentAngle = 0;
+        var x = 0;
+        var y = 0;
+        
+        // Calcular lado base proporcional aos ângulos
+        var avgAngle = (angles[0] + angles[1] + angles[2] + angles[3]) / 4;
+        var sideLength = 100;
+        
+        vertices.push({x: x, y: y});
+        
+        for (var i = 0; i < n - 1; i++) {
+          x += sideLength * Math.cos(currentAngle);
+          y += sideLength * Math.sin(currentAngle);
+          vertices.push({x: x, y: y});
+          
+          // Ângulo externo = 180° - ângulo interno
+          var externalAngle = (180 - angles[i]) * Math.PI / 180;
+          currentAngle += externalAngle;
+        }
+        
+        return vertices;
+      } else {
+        // Para outros polígonos
+        var vertices = [];
+        var x = 0;
+        var y = 0;
+        var currentAngle = 0;
+        var sideLength = 50;
+        
+        vertices.push({x: x, y: y});
+        
+        for (var i = 0; i < n - 1; i++) {
+          x += sideLength * Math.cos(currentAngle);
+          y += sideLength * Math.sin(currentAngle);
+          vertices.push({x: x, y: y});
+          var externalAngle = (180 - angles[i]) * Math.PI / 180;
+          currentAngle += externalAngle;
+        }
+        
+        return vertices;
+      }
+    }
+
+    function calculateVerticesFromBoth(sides, angles, n) {
+      if (n === 3) {
+        var vertices = [];
+        
+        var A = angles[0] * Math.PI / 180;
+        var B = angles[1] * Math.PI / 180;
+        var C = angles[2] * Math.PI / 180;
+        
+        var a = sides[0];
+        var b = sides[1];
+        var c = sides[2];
+        
+        vertices.push({x: 0, y: 0});
+        vertices.push({x: c, y: 0});
+        
+        var v2x = b * Math.cos(A);
+        var v2y = b * Math.sin(A);
+        vertices.push({x: v2x, y: v2y});
+        
+        return vertices;
+      } else {
+        var vertices = [];
+        var x = 0;
+        var y = 0;
+        var currentAngle = 0;
+        vertices.push({x: x, y: y});
+        for (var i = 0; i < n - 1; i++) {
+          x += sides[i] * Math.cos(currentAngle);
+          y += sides[i] * Math.sin(currentAngle);
+          vertices.push({x: x, y: y});
+          var externalAngle = (180 - angles[i]) * Math.PI / 180;
+          currentAngle += externalAngle;
+        }
+        return vertices;
+      }
+    }
+
+    function getBounds(vertices) {
+      var minX = vertices[0].x;
+      var minY = vertices[0].y;
+      var maxX = vertices[0].x;
+      var maxY = vertices[0].y;
+      
+      for (var i = 1; i < vertices.length; i++) {
+        if (vertices[i].x < minX) minX = vertices[i].x;
+        if (vertices[i].y < minY) minY = vertices[i].y;
+        if (vertices[i].x > maxX) maxX = vertices[i].x;
+        if (vertices[i].y > maxY) maxY = vertices[i].y;
+      }
+      
+      return {minX: minX, minY: minY, maxX: maxX, maxY: maxY};
+    }
+
+    function calculateAnglesFromVertices(vertices, n) {
+      var angles = [];
+      for (var i = 0; i < n; i++) {
+        var v1 = vertices[(i - 1 + n) % n];
+        var v2 = vertices[i];
+        var v3 = vertices[(i + 1) % n];
+        var dx1 = v1.x - v2.x;
+        var dy1 = v1.y - v2.y;
+        var dx2 = v3.x - v2.x;
+        var dy2 = v3.y - v2.y;
+        var dot = dx1 * dx2 + dy1 * dy2;
+        var mag1 = Math.hypot(dx1, dy1);
+        var mag2 = Math.hypot(dx2, dy2);
+        var cosAngle = dot / (mag1 * mag2);
+        cosAngle = Math.max(-1, Math.min(1, cosAngle));
+        var angle = Math.acos(cosAngle) * 180 / Math.PI;
+        angles.push(angle);
+      }
+      return angles;
+    }
+
+    drawCanvas();
+    generateCustomInputs();
+  </script>
+</body>
+</html>
