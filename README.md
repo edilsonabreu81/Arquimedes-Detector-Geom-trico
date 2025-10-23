@@ -1,0 +1,1 @@
+# Arquimedes-Detector-Geom-trico
