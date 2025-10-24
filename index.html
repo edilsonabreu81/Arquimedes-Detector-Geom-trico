@@ -1,4 +1,4 @@
-<index.html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -497,6 +497,10 @@
       <div id="customShapePreview" style="display: none; margin-top: 20px;">
         <canvas id="customPreviewCanvas" width="600" height="400" style="border: 3px solid #22c55e;"></canvas>
         <div id="customShapeInfo" style="margin-top: 15px;"></div>
+        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-success" id="btnDownloadCustom">💾 Baixar Imagem</button>
+          <button class="btn btn-primary" id="btnSendCustom">📧 Enviar para o Professor</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1452,30 +1456,25 @@
       link.click();
     }
     
-    function sendResultImage() {
-      var resultCanvas = document.getElementById('resultCanvas');
-      
-      // Mostrar opções ao usuário
-      var choice = confirm(
-        '📧 Enviar Análise Geométrica\n\n' +
-        'Escolha o método:\n\n' +
-        '✅ OK = Enviar por Email (abre seu app de email)\n' +
-        '❌ Cancelar = Copiar link do Google Forms'
-      );
-      
-      if (choice) {
-        // OPÇÃO 1: Email direto
-        sendViaEmail(resultCanvas);
-      } else {
-        // OPÇÃO 2: Google Forms
-        showGoogleFormsOption();
-      }
+    function downloadCustomImage() {
+      var customCanvas = document.getElementById('customPreviewCanvas');
+      var link = document.createElement('a');
+      link.download = 'poligono_personalizado.png';
+      link.href = customCanvas.toDataURL();
+      link.click();
     }
     
-    function sendViaEmail(canvas) {
-      // Converter canvas para imagem base64
-      var imageData = canvas.toDataURL('image/png');
-      
+    function sendResultImage() {
+      var resultCanvas = document.getElementById('resultCanvas');
+      sendImageViaEmail(resultCanvas);
+    }
+    
+    function sendCustomImage() {
+      var customCanvas = document.getElementById('customPreviewCanvas');
+      sendImageViaEmail(customCanvas);
+    }
+    
+    function sendImageViaEmail(canvas) {
       var analysis = window.lastAnalysis;
       if (!analysis) {
         alert('Por favor, execute uma análise primeiro!');
@@ -1503,11 +1502,17 @@
       }
       
       emailBody += '%0D%0A----%0D%0A';
-      emailBody += 'INSTRUÇÕES: Para anexar a imagem, clique em "Baixar Imagem" primeiro e depois anexe ao email.%0D%0A%0D%0A';
-      emailBody += 'Atenciosamente,%0D%0A[Seu Nome]';
+      emailBody += 'INSTRUÇÕES para o aluno:%0D%0A';
+      emailBody += '1. Clique em "💾 Baixar Imagem" para salvar a figura%0D%0A';
+      emailBody += '2. Retorne ao email e anexe o arquivo baixado%0D%0A';
+      emailBody += '3. Adicione seu nome abaixo%0D%0A';
+      emailBody += '4. Clique em Enviar%0D%0A%0D%0A';
+      emailBody += 'Nome do Aluno: [Digite seu nome aqui]%0D%0A';
+      emailBody += 'Turma: [Digite sua turma aqui]%0D%0A%0D%0A';
+      emailBody += 'Atenciosamente';
       
-      // IMPORTANTE: Substitua pelo SEU email
-      var professorEmail = edilsonabreu81@gmail.com'; // ⚠️ ALTERE AQUI!
+      // ⚠️ COLOQUE SEU EMAIL AQUI
+      var professorEmail = 'edilsonabreu81@gmail.com';
       
       // Abrir cliente de email
       var mailtoLink = 'mailto:' + professorEmail + 
@@ -1519,38 +1524,16 @@
       // Instruções para o usuário
       setTimeout(function() {
         alert(
-          '📧 Email aberto!\n\n' +
-          'IMPORTANTE: O email foi aberto com os dados, mas você precisa:\n\n' +
-          '1. Clicar em "💾 Baixar Imagem"\n' +
-          '2. Anexar a imagem baixada ao email\n' +
-          '3. Adicionar seu nome\n' +
-          '4. Enviar\n\n' +
-          'A imagem não pode ser enviada automaticamente por segurança.'
+          '📧 Email preparado!\n\n' +
+          'PRÓXIMOS PASSOS:\n\n' +
+          '1️⃣ Volte aqui e clique em "💾 Baixar Imagem"\n' +
+          '2️⃣ Retorne ao email que foi aberto\n' +
+          '3️⃣ Clique em "Anexar" e selecione a imagem baixada\n' +
+          '4️⃣ Complete seu nome e turma no email\n' +
+          '5️⃣ Clique em Enviar\n\n' +
+          '✅ Pronto! O professor receberá sua análise!'
         );
-      }, 500);
-    }
-    
-    function showGoogleFormsOption() {
-      // OPÇÃO 2: Criar Google Form para receber submissions
-      var formUrl = 'https://forms.gle/SEU_FORM_ID_AQUI'; // ⚠️ CRIE UM FORM E COLOQUE O LINK
-      
-      var msg = '📝 Opção: Google Forms\n\n';
-      msg += 'Para usar esta opção:\n\n';
-      msg += '1. Baixe a imagem (botão "💾 Baixar Imagem")\n';
-      msg += '2. Acesse o formulário que será aberto\n';
-      msg += '3. Faça upload da imagem no formulário\n';
-      msg += '4. Preencha os dados e envie\n\n';
-      msg += 'Deseja abrir o formulário agora?';
-      
-      if (confirm(msg)) {
-        // Baixar imagem automaticamente
-        downloadResultImage();
-        
-        // Abrir Google Forms
-        setTimeout(function() {
-          window.open(formUrl, '_blank');
-        }, 500);
-      }
+      }, 1000);
     }
 
     function generateCustomInputs() {
@@ -1995,6 +1978,16 @@
       info += '</div>';
 
       document.getElementById('customShapeInfo').innerHTML = info;
+      
+      // Armazenar análise para envio por email
+      window.lastAnalysis = {
+        sides: sides,
+        angles: angles,
+        perimeter: perimeter,
+        area: area,
+        name: name,
+        n: n
+      };
     }
 
     function clearCustom() {
@@ -2324,6 +2317,23 @@
           }, false);
         }
         
+        // CUSTOM DOWNLOAD AND SEND BUTTONS
+        var btnDownloadCustom = document.getElementById('btnDownloadCustom');
+        if (btnDownloadCustom) {
+          btnDownloadCustom.addEventListener('click', function(e) {
+            e.preventDefault();
+            downloadCustomImage();
+          }, false);
+        }
+        
+        var btnSendCustom = document.getElementById('btnSendCustom');
+        if (btnSendCustom) {
+          btnSendCustom.addEventListener('click', function(e) {
+            e.preventDefault();
+            sendCustomImage();
+          }, false);
+        }
+        
         // 7. CUSTOM POLYGON INPUTS
         var numSides = document.getElementById('numSides');
         var creationMode = document.getElementById('creationMode');
@@ -2368,4 +2378,3 @@
   </script>
 </body>
 </html>
-
