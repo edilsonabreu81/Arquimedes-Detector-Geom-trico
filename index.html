@@ -1,4 +1,4 @@
-<index.html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -91,8 +91,16 @@
       border-bottom: 3px solid #667eea;
     }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .tab-content { 
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .tab-content.active { 
+      display: block;
+      opacity: 1;
+    }
 
     .upload-btn {
       background: #667eea;
@@ -263,6 +271,7 @@
         padding: 10px 12px;
         font-size: 12px;
         min-width: 100px;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
       }
 
       canvas {
@@ -275,11 +284,13 @@
         font-size: 14px;
         width: 100%;
         max-width: 300px;
+        -webkit-appearance: none;
       }
 
       .mode-btn {
         padding: 10px;
         font-size: 13px;
+        -webkit-appearance: none;
       }
 
       .btn {
@@ -288,6 +299,7 @@
         margin: 3px;
         flex: 1;
         min-width: 100px;
+        -webkit-appearance: none;
       }
 
       .controls {
@@ -308,6 +320,7 @@
         padding: 8px;
         font-size: 13px;
         width: 100%;
+        -webkit-appearance: none;
       }
 
       .validation-box {
@@ -353,7 +366,7 @@
       }
     }
 
-    /* Melhorias para touch */
+    /* Melhorias para touch e Safari/iOS */
     @media (hover: none) and (pointer: coarse) {
       .btn, .mode-btn, .tab, .upload-btn {
         -webkit-tap-highlight-color: transparent;
@@ -362,22 +375,38 @@
       .btn:active {
         transform: scale(0.95);
       }
+      
+      /* Fix para Safari iOS */
+      input[type="number"], 
+      input[type="file"],
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 8px;
+      }
+      
+      select {
+        background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 30px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🔍 Detector Geométrico Arquimedes </h1>
+    <h1>🔍 Detector Geométrico Profissional</h1>
 
     <div class="tabs">
-      <button class="tab active" onclick="switchTab(0)">📏 Medir Figura</button>
-      <button class="tab" onclick="switchTab(1)">🎯 Polígono Personalizado</button>
+      <button class="tab active" data-tab="0">📏 Medir Figura</button>
+      <button class="tab" data-tab="1">🎯 Polígono Personalizado</button>
     </div>
 
     <!-- ABA 1: Medir -->
     <div id="tab0" class="tab-content active">
       <div style="text-align: center;">
-        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+        <button class="upload-btn" id="btnUpload">
           📷 Carregar Imagem
         </button>
         <input type="file" id="fileInput" accept="image/*">
@@ -392,13 +421,13 @@
       <div id="status" class="status status-info">ℹ️ Carregue uma imagem</div>
 
       <div style="text-align: center; margin: 20px 0;">
-        <button class="mode-btn active" id="modeScale" onclick="setMode('scale')" style="display: inline-block; width: auto; padding: 15px 30px; margin: 5px;">
+        <button class="mode-btn active" id="modeScale" data-mode="scale">
           1️⃣ Marcar Escala
         </button>
-        <button class="mode-btn" id="modeShape" onclick="setMode('shape')" style="display: inline-block; width: auto; padding: 15px 30px; margin: 5px;">
+        <button class="mode-btn" id="modeShape" data-mode="shape">
           2️⃣ Marcar Forma
         </button>
-        <button class="btn btn-info" onclick="autoDetect()" style="display: inline-block; padding: 15px 30px; margin: 5px;">
+        <button class="btn btn-info" id="btnAutoDetect" style="display: inline-block; padding: 15px 30px; margin: 5px;">
           🤖 Detecção Automática
         </button>
       </div>
@@ -406,10 +435,10 @@
       <canvas id="canvas" width="800" height="600"></canvas>
 
       <div class="controls">
-        <button class="btn btn-warning" onclick="undoPoint()">↶ Desfazer</button>
-        <button class="btn btn-success" id="btnAnalyze" onclick="analyze()" disabled>📊 Calcular</button>
-        <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar</button>
-        <button class="btn btn-primary" onclick="generateResultImage()" id="btnGenerateImage" style="display: none;">🖼️ Gerar Figura com Resultados</button>
+        <button class="btn btn-warning" id="btnUndo">↶ Desfazer</button>
+        <button class="btn btn-success" id="btnAnalyze" disabled>📊 Calcular</button>
+        <button class="btn btn-danger" id="btnClear">🗑️ Limpar</button>
+        <button class="btn btn-primary" id="btnGenerateImage" style="display: none;">🖼️ Gerar Figura com Resultados</button>
       </div>
 
       <div class="info-box">
@@ -422,8 +451,9 @@
       <div id="resultImageContainer" style="display: none; margin-top: 20px; text-align: center;">
         <h3 style="color: #667eea;">🖼️ Figura Analisada com Resultados</h3>
         <canvas id="resultCanvas" style="border: 3px solid #667eea; border-radius: 10px; max-width: 100%; background: white;"></canvas>
-        <div style="margin-top: 10px;">
-          <button class="btn btn-success" onclick="downloadResultImage()">💾 Baixar Imagem</button>
+        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-success" id="btnDownloadResult">💾 Baixar Imagem</button>
+          <button class="btn btn-primary" id="btnSendResult">📧 Enviar para o Professor</button>
         </div>
       </div>
     </div>
@@ -435,12 +465,12 @@
       
       <div style="margin: 20px 0;">
         <label><strong>Número de Lados:</strong></label>
-        <input type="number" id="numSides" min="3" max="12" value="3" onchange="generateCustomInputs()">
+        <input type="number" id="numSides" min="3" max="12" value="3">
       </div>
 
       <div style="margin: 20px 0;">
         <label><strong>Modo:</strong></label>
-        <select id="creationMode" onchange="toggleCreationMode()">
+        <select id="creationMode">
           <option value="sides">Apenas Lados</option>
           <option value="angles">Apenas Ângulos</option>
           <option value="both">Lados e Ângulos</option>
@@ -459,8 +489,8 @@
       </div>
 
       <div class="controls">
-        <button class="btn btn-success" onclick="validateCustomPolygon()">✓ Validar</button>
-        <button class="btn btn-warning" onclick="clearCustom()">🔄 Limpar</button>
+        <button class="btn btn-success" id="btnValidateCustom">✓ Validar</button>
+        <button class="btn btn-warning" id="btnClearCustom">🔄 Limpar</button>
       </div>
 
       <div id="customValidationResults"></div>
@@ -472,6 +502,51 @@
   </div>
 
   <script>
+    // Polyfill para Math.hypot (Safari antigo)
+    if (!Math.hypot) {
+      Math.hypot = function() {
+        var y = 0;
+        var length = arguments.length;
+        for (var i = 0; i < length; i++) {
+          if (arguments[i] === Infinity || arguments[i] === -Infinity) {
+            return Infinity;
+          }
+          y += arguments[i] * arguments[i];
+        }
+        return Math.sqrt(y);
+      };
+    }
+    
+    // Polyfill para classList.toggle (Safari antigo)
+    if (!('classList' in document.createElement('_'))) {
+      var toggle = function(className) {
+        if (this.contains(className)) {
+          this.remove(className);
+        } else {
+          this.add(className);
+        }
+      };
+      Object.defineProperty(Element.prototype, 'classList', {
+        get: function() {
+          var elem = this;
+          return {
+            contains: function(c) {
+              return elem.className.indexOf(c) > -1;
+            },
+            add: function(c) {
+              if (!this.contains(c)) {
+                elem.className += ' ' + c;
+              }
+            },
+            remove: function(c) {
+              elem.className = elem.className.replace(new RegExp('\\b' + c + '\\b', 'g'), '').trim();
+            },
+            toggle: toggle
+          };
+        }
+      });
+    }
+    
     var img = null;
     var scalePoints = [];
     var vertices = [];
@@ -483,16 +558,41 @@
     var customPreviewCtx = customPreviewCanvas.getContext('2d');
 
     function switchTab(index) {
+      console.log('switchTab chamado com index:', index);
+      
       var tabs = document.querySelectorAll('.tab');
       var contents = document.querySelectorAll('.tab-content');
       
-      for (var i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-        contents[i].classList.remove('active');
+      if (!tabs || !contents) {
+        console.error('Tabs ou contents não encontrados');
+        return;
       }
       
-      tabs[index].classList.add('active');
-      contents[index].classList.add('active');
+      // Remover active de todas
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].className = tabs[i].className.replace('active', '').trim();
+        tabs[i].classList.remove('active');
+      }
+      
+      for (var i = 0; i < contents.length; i++) {
+        contents[i].className = contents[i].className.replace('active', '').trim();
+        contents[i].classList.remove('active');
+        contents[i].style.display = 'none';
+      }
+      
+      // Adicionar active na selecionada
+      if (tabs[index] && contents[index]) {
+        tabs[index].classList.add('active');
+        tabs[index].className += ' active';
+        
+        contents[index].classList.add('active');
+        contents[index].className += ' active';
+        contents[index].style.display = 'block';
+        
+        console.log('Tab ' + index + ' ativada com sucesso');
+      } else {
+        console.error('Tab ou content index ' + index + ' não existe');
+      }
     }
 
     function setStatus(msg, type) {
@@ -1351,6 +1451,107 @@
       link.href = resultCanvas.toDataURL();
       link.click();
     }
+    
+    function sendResultImage() {
+      var resultCanvas = document.getElementById('resultCanvas');
+      
+      // Mostrar opções ao usuário
+      var choice = confirm(
+        '📧 Enviar Análise Geométrica\n\n' +
+        'Escolha o método:\n\n' +
+        '✅ OK = Enviar por Email (abre seu app de email)\n' +
+        '❌ Cancelar = Copiar link do Google Forms'
+      );
+      
+      if (choice) {
+        // OPÇÃO 1: Email direto
+        sendViaEmail(resultCanvas);
+      } else {
+        // OPÇÃO 2: Google Forms
+        showGoogleFormsOption();
+      }
+    }
+    
+    function sendViaEmail(canvas) {
+      // Converter canvas para imagem base64
+      var imageData = canvas.toDataURL('image/png');
+      
+      var analysis = window.lastAnalysis;
+      if (!analysis) {
+        alert('Por favor, execute uma análise primeiro!');
+        return;
+      }
+      
+      // Criar corpo do email com os resultados
+      var emailBody = 'Olá Professor,%0D%0A%0D%0A';
+      emailBody += 'Segue minha análise geométrica:%0D%0A%0D%0A';
+      emailBody += '📐 Forma: ' + analysis.name + '%0D%0A';
+      emailBody += '📏 Número de lados: ' + analysis.n + '%0D%0A';
+      emailBody += '📊 Perímetro: ' + analysis.perimeter.toFixed(2) + ' cm%0D%0A';
+      emailBody += '📦 Área: ' + analysis.area.toFixed(2) + ' cm²%0D%0A%0D%0A';
+      
+      emailBody += 'Lados:%0D%0A';
+      for (var i = 0; i < analysis.sides.length; i++) {
+        emailBody += '  L' + (i+1) + ' = ' + analysis.sides[i].toFixed(2) + ' cm%0D%0A';
+      }
+      
+      if (analysis.angles) {
+        emailBody += '%0D%0AÂngulos:%0D%0A';
+        for (var i = 0; i < analysis.angles.length; i++) {
+          emailBody += '  ∠' + (i+1) + ' = ' + analysis.angles[i].toFixed(1) + '°%0D%0A';
+        }
+      }
+      
+      emailBody += '%0D%0A----%0D%0A';
+      emailBody += 'INSTRUÇÕES: Para anexar a imagem, clique em "Baixar Imagem" primeiro e depois anexe ao email.%0D%0A%0D%0A';
+      emailBody += 'Atenciosamente,%0D%0A[Seu Nome]';
+      
+      // IMPORTANTE: Substitua pelo SEU email
+      var professorEmail = edilsonabreu81@gmail.com'; // ⚠️ ALTERE AQUI!
+      
+      // Abrir cliente de email
+      var mailtoLink = 'mailto:' + professorEmail + 
+                       '?subject=Análise Geométrica - Detector Arquimedes' +
+                       '&body=' + emailBody;
+      
+      window.location.href = mailtoLink;
+      
+      // Instruções para o usuário
+      setTimeout(function() {
+        alert(
+          '📧 Email aberto!\n\n' +
+          'IMPORTANTE: O email foi aberto com os dados, mas você precisa:\n\n' +
+          '1. Clicar em "💾 Baixar Imagem"\n' +
+          '2. Anexar a imagem baixada ao email\n' +
+          '3. Adicionar seu nome\n' +
+          '4. Enviar\n\n' +
+          'A imagem não pode ser enviada automaticamente por segurança.'
+        );
+      }, 500);
+    }
+    
+    function showGoogleFormsOption() {
+      // OPÇÃO 2: Criar Google Form para receber submissions
+      var formUrl = 'https://forms.gle/SEU_FORM_ID_AQUI'; // ⚠️ CRIE UM FORM E COLOQUE O LINK
+      
+      var msg = '📝 Opção: Google Forms\n\n';
+      msg += 'Para usar esta opção:\n\n';
+      msg += '1. Baixe a imagem (botão "💾 Baixar Imagem")\n';
+      msg += '2. Acesse o formulário que será aberto\n';
+      msg += '3. Faça upload da imagem no formulário\n';
+      msg += '4. Preencha os dados e envie\n\n';
+      msg += 'Deseja abrir o formulário agora?';
+      
+      if (confirm(msg)) {
+        // Baixar imagem automaticamente
+        downloadResultImage();
+        
+        // Abrir Google Forms
+        setTimeout(function() {
+          window.open(formUrl, '_blank');
+        }, 500);
+      }
+    }
 
     function generateCustomInputs() {
       var n = parseInt(document.getElementById('numSides').value);
@@ -1984,7 +2185,186 @@
 
     drawCanvas();
     generateCustomInputs();
+    
+    // INICIALIZAÇÃO - Compatível com Safari/iOS
+    function initializeApp() {
+      console.log('Iniciando app...');
+      
+      try {
+        // 1. TABS - Múltiplos métodos para garantir funcionamento
+        var tabButtons = document.querySelectorAll('.tab');
+        console.log('Tabs encontradas:', tabButtons.length);
+        
+        for (var i = 0; i < tabButtons.length; i++) {
+          (function(index) {
+            var btn = tabButtons[index];
+            
+            // Click
+            btn.addEventListener('click', function(e) {
+              console.log('Click na tab', index);
+              e.preventDefault();
+              e.stopPropagation();
+              switchTab(index);
+              return false;
+            }, false);
+            
+            // Touchstart para iOS
+            btn.addEventListener('touchstart', function(e) {
+              console.log('Touch na tab', index);
+              e.preventDefault();
+              switchTab(index);
+            }, false);
+            
+            // Método alternativo - atributo direto
+            btn.onclick = function(e) {
+              console.log('Onclick na tab', index);
+              e.preventDefault();
+              switchTab(index);
+              return false;
+            };
+          })(i);
+        }
+        
+        // 2. UPLOAD BUTTON
+        var btnUpload = document.getElementById('btnUpload');
+        if (btnUpload) {
+          btnUpload.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('fileInput').click();
+          }, false);
+          console.log('Upload button configurado');
+        }
+        
+        // 3. MODE BUTTONS
+        var modeScale = document.getElementById('modeScale');
+        var modeShape = document.getElementById('modeShape');
+        if (modeScale) {
+          modeScale.addEventListener('click', function(e) {
+            e.preventDefault();
+            setMode('scale');
+          }, false);
+        }
+        if (modeShape) {
+          modeShape.addEventListener('click', function(e) {
+            e.preventDefault();
+            setMode('shape');
+          }, false);
+        }
+        
+        // 4. ACTION BUTTONS - TAB 1
+        var btnAutoDetect = document.getElementById('btnAutoDetect');
+        var btnUndo = document.getElementById('btnUndo');
+        var btnAnalyze = document.getElementById('btnAnalyze');
+        var btnClear = document.getElementById('btnClear');
+        var btnGenerateImage = document.getElementById('btnGenerateImage');
+        
+        if (btnAutoDetect) {
+          btnAutoDetect.addEventListener('click', function(e) {
+            e.preventDefault();
+            autoDetect();
+          }, false);
+        }
+        if (btnUndo) {
+          btnUndo.addEventListener('click', function(e) {
+            e.preventDefault();
+            undoPoint();
+          }, false);
+        }
+        if (btnAnalyze) {
+          btnAnalyze.addEventListener('click', function(e) {
+            e.preventDefault();
+            analyze();
+          }, false);
+        }
+        if (btnClear) {
+          btnClear.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearAll();
+          }, false);
+        }
+        if (btnGenerateImage) {
+          btnGenerateImage.addEventListener('click', function(e) {
+            e.preventDefault();
+            generateResultImage();
+          }, false);
+        }
+        
+        // 5. ACTION BUTTONS - TAB 2
+        var btnValidateCustom = document.getElementById('btnValidateCustom');
+        var btnClearCustom = document.getElementById('btnClearCustom');
+        
+        if (btnValidateCustom) {
+          btnValidateCustom.addEventListener('click', function(e) {
+            e.preventDefault();
+            validateCustomPolygon();
+          }, false);
+        }
+        if (btnClearCustom) {
+          btnClearCustom.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearCustom();
+          }, false);
+        }
+        
+        // 6. DOWNLOAD BUTTON
+        var btnDownloadResult = document.getElementById('btnDownloadResult');
+        if (btnDownloadResult) {
+          btnDownloadResult.addEventListener('click', function(e) {
+            e.preventDefault();
+            downloadResultImage();
+          }, false);
+        }
+        
+        // SEND BUTTON (NOVO)
+        var btnSendResult = document.getElementById('btnSendResult');
+        if (btnSendResult) {
+          btnSendResult.addEventListener('click', function(e) {
+            e.preventDefault();
+            sendResultImage();
+          }, false);
+        }
+        
+        // 7. CUSTOM POLYGON INPUTS
+        var numSides = document.getElementById('numSides');
+        var creationMode = document.getElementById('creationMode');
+        
+        if (numSides) {
+          numSides.addEventListener('change', generateCustomInputs, false);
+        }
+        if (creationMode) {
+          creationMode.addEventListener('change', toggleCreationMode, false);
+        }
+        
+        console.log('✅ App inicializado com sucesso!');
+        
+        // Teste: ativar tab 0 manualmente
+        setTimeout(function() {
+          switchTab(0);
+        }, 100);
+        
+      } catch (error) {
+        console.error('Erro ao inicializar:', error);
+        alert('Erro ao inicializar app: ' + error.message);
+      }
+    }
+    
+    // Múltiplas estratégias de inicialização
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp, false);
+    } else {
+      // DOM já carregado
+      setTimeout(initializeApp, 0);
+    }
+    
+    // Backup - inicializar após window.onload
+    window.addEventListener('load', function() {
+      console.log('Window loaded - verificando inicialização');
+      var tabs = document.querySelectorAll('.tab');
+      if (tabs.length > 0 && !tabs[0].onclick) {
+        console.log('Reinicializando...');
+        initializeApp();
+      }
+    }, false);
   </script>
 </body>
-
 </html>
